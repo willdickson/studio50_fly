@@ -3,7 +3,10 @@ import cv2
 import time
 import enum
 import numpy as np
+from .utility import rotate_image
+from .utility import create_ray_image
 from .utility import get_monitor_dict
+
 
 class DisplayMode(enum.Enum):
     BLACK = 0
@@ -28,7 +31,7 @@ class DisplayController:
         cv2.resizeWindow(self.window_name, self.monitor.width, self.monitor.height)
         cv2.moveWindow(self.window_name, self.monitor.x, self.monitor.y)
 
-        self.next_image_table = {
+        self.next_image_methods = {
                 DisplayMode.BLACK          : self.next_black_image,
                 DisplayMode.SOLID          : self.next_solid_image,
                 DisplayMode.STATIC_IMAGE   : self.next_static_image,
@@ -74,43 +77,11 @@ class DisplayController:
         y_scaled = y//scale
         angle = np.deg2rad(t*rate)
         image_shape = (self.monitor.height//scale, self.monitor.width//scale, 3)
-        image = get_ray_image(x_scaled, y_scaled, angle, image_shape, num_rays, color=color)
+        image = create_ray_image(x_scaled, y_scaled, angle, image_shape, num_rays, color=color)
         return image
 
     def update_image(self,state):
-        next_image_method = self.next_image_table[state['mode']]
-        image = next_image_method(**state['kwargs'])
+        image = self.next_image_methods[state['mode']](**state['kwargs'])
         cv2.imshow(self.window_name, image)
-
-
-# Utility functions
-# ---------------------------------------------------------------------------------------
-
-def rotate_image(image, angle, center=None, scale=1.0):
-    (h, w) = image.shape[:2]
-    if center is None:
-        center = (w // 2, h // 2)
-    M = cv2.getRotationMatrix2D(center, angle, scale)
-    rotated = cv2.warpAffine(image, M, (w, h))
-    return rotated
-
-def get_ray_image(x0, y0, angle, image_shape, num_rays, color=(0,255,0)):
-    nrow, ncol, nchan = image_shape
-    x_coord = np.arange(ncol, dtype=np.float) - x0
-    y_coord = np.arange(nrow, dtype=np.float) - y0
-    x_coord, y_coord = np.meshgrid(x_coord, y_coord)
-    coord_angles = (np.arctan2(y_coord, x_coord) - angle) % (2.0*np.pi)
-    mask = np.full((nrow,ncol),False)
-    for i in range(num_rays):
-        theta0 = (2.0*np.pi*((2*i)/float(2*num_rays)))  
-        theta1 = (2.0*np.pi*((2*i+1)/float(2*num_rays))) 
-        mask_arc = np.logical_and(coord_angles >= theta0, coord_angles < theta1)
-        mask = np.logical_or(mask, mask_arc)
-    ray_image = np.zeros((nrow, ncol, nchan), dtype=np.float)
-    ray_image[mask,:] = color
-    return ray_image
-
-
-
 
 #
