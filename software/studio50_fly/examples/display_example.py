@@ -1,11 +1,12 @@
 import cv2
 import time
 import numpy as np
+from studio50_fly import DisplayMode
 from studio50_fly import DisplayController
 
 param = {
         'monitor_name'    : 'DP-1',
-        'ray_image_scale' :  3, 
+        'gen_image_scale' :  3, 
         'images': {
             'checker_20x20_black_green' : 'checker_20x20_black_green_640x360.jpg',
             'checker_20x20_black_white' : 'checker_20x20_black_white_640x360.jpg',
@@ -30,50 +31,45 @@ while not done:
 
     # Set state for image update
     if 0:
-        state = {'mode': 'black', 'vals': {}}
+        state = {'mode': DisplayMode.BLACK}
     if 0:
         state = {
-                'mode': 'solid',
-                'vals': {
-                    'color': (255, 100, 100),
-                    }
+                'mode': DisplayMode.SOLID,
+                'kwargs': {'color': (255, 100, 100)}
                 }
 
     if 0:
         state = {
-                'mode': 'image', 
-                'vals': {
-                    'name' : 'checker_20x20_black_green',
-                    #'name' : 'checker_20x20_black_white',
-                    #'name' : 'spiral_r10_black_white',
-                    }
+                'mode': DisplayMode.IMAGE, 
+                'kwargs': {'name' : 'checker_20x20_black_white'}
                 }
 
-    if 0:
+    if 1:
         state = {
-                'mode' : 'rotating_image', 
-                'vals' : { 
+                'mode' : DisplayMode.ROTATING_IMAGE, 
+                'kwargs' : { 
                     't'    : t, 
                     'rate' : 10.0,
                     'name' : 'checker_20x20_black_white',
                     }
                 }
 
-    if 1:
+    if 0:
+        x = disp.monitor.width//2 + 100*np.cos(2.0*np.pi*t/15.0)  
+        y = disp.monitor.height//2 + 100*np.sin(4.0*np.pi*t/15.0)
         state = {
-                'mode'  : 'rotating_rays', 
-                'vals' : {
+                'mode'  : DisplayMode.ROTATING_RAYS, 
+                'kwargs' : {
                     't'   : t, 
-                    'x'   : disp.monitor.width//2 + 100*np.cos(2.0*np.pi*t/15.0), 
-                    'y'   : disp.monitor.height//2 + 100*np.sin(4.0*np.pi*t/15.0),
-                    'rate': 10.0, 
-                    'num' : 15,
-                    'color': (255,0,0),
+                    'pos' : (x,y),
+                    'rate': 20.0, 
+                    'num_rays' : 15,
+                    'color': (255,255,255),
                     }
                 }
 
-        disp.update_image(state)
-        key = cv2.waitKey(1) & 0xff
-        if key == ord('q'):
-            done = True
+    disp.update_image(state)
+    key = cv2.waitKey(1) & 0xff
+    if key == ord('q'):
+        done = True
 
