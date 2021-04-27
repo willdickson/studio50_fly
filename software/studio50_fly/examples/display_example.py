@@ -29,46 +29,39 @@ while not done:
     t  = t_now - t_start
     t_last = t_now
 
-    # Set state for image update
-    if 0:
-        state = {'mode': DisplayMode.BLACK}
-    if 0:
-        state = {
-                'mode': DisplayMode.SOLID,
-                'kwargs': {'color': (255, 100, 100)}
-                }
-
-    if 0:
-        state = {
-                'mode': DisplayMode.IMAGE, 
+    if t <= 2.0: 
+        display_state = {'mode': DisplayMode.BLACK, 'kwargs': {}} 
+    elif t > 2.0 and t <= 4.0:
+        display_state = {
+                'mode': DisplayMode.STATIC_IMAGE, 
                 'kwargs': {'name' : 'checker_20x20_black_white'}
                 }
-
-    if 1:
-        state = {
-                'mode' : DisplayMode.ROTATING_IMAGE, 
-                'kwargs' : { 
-                    't'    : t, 
-                    'rate' : 10.0,
-                    'name' : 'checker_20x20_black_white',
-                    }
+    elif t > 4.0 and t <= 5.0: 
+        display_state = {'mode': DisplayMode.BLACK, 'kwargs': {}} 
+    elif t > 5.0 and t <= 15.0:
+       x = disp.monitor.width//2 + 100*np.cos(2.0*np.pi*t/15.0)  
+       y = disp.monitor.height//2 + 100*np.sin(4.0*np.pi*t/15.0)
+       display_state = {
+               'mode'  : DisplayMode.ROTATING_RAYS, 
+               'kwargs' : {
+                   't'   : t, 
+                   'pos' : (x,y),
+                   'rate': 20.0, 
+                   'num_rays' : 15,
+                   'color': (255,255,255),
+                   }
+               }
+    elif t > 15.0 and t <= 16.0: 
+        display_state = {'mode': DisplayMode.BLACK, 'kwargs': {}} 
+    elif t > 16.0 and t <= 20.0:
+        display_state = {
+                'mode': DisplayMode.STATIC_IMAGE, 
+                'kwargs': {'name' : 'checker_20x20_black_white'}
                 }
+    if t > 20.0:
+        done = True
 
-    if 0:
-        x = disp.monitor.width//2 + 100*np.cos(2.0*np.pi*t/15.0)  
-        y = disp.monitor.height//2 + 100*np.sin(4.0*np.pi*t/15.0)
-        state = {
-                'mode'  : DisplayMode.ROTATING_RAYS, 
-                'kwargs' : {
-                    't'   : t, 
-                    'pos' : (x,y),
-                    'rate': 20.0, 
-                    'num_rays' : 15,
-                    'color': (255,255,255),
-                    }
-                }
-
-    disp.update_image(state)
+    disp.update_image(display_state)
     key = cv2.waitKey(1) & 0xff
     if key == ord('q'):
         done = True
