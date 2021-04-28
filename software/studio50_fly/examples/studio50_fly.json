@@ -1,0 +1,34 @@
+{
+    "camera": {
+        "device"   : "/dev/video0",
+        "width"    : 1280,
+        "height"   : 1024,
+        "fourcc"   : "MJPG",
+        "exposure" : 300
+    },
+    "projector" : { 
+        "device" : "DP-1"
+    },
+    "monitor" : {
+        "device" : "HDMI-0"
+    },
+    "calibration" : {
+        "blob_finder" : {
+            "threshold" : 40,
+            "min_area"  : 50
+        },
+        "homography" : {
+            "filename"    : "homography.pkl",
+            "x_range"     : [-200, 200],
+            "y_range"     : [-200, 200],
+            "step_size"   : 150,
+            "circle_size" : 10,
+            "blob_finder" : {
+                "max_attempts" : 20,
+                "min_required" : 10,
+                "capture_dt"   : 0.1
+            }
+        }
+    }
+}
+

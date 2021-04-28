@@ -10,6 +10,9 @@ def get_monitor_dict():
         monitor_dict[item.name] = item
     return monitor_dict
 
+def get_user_monitor(monitor):
+    monitor_dict = get_monitor_dict()
+    return monitor_dict[monitor['device']]
 
 def rotate_image(image, angle, center=None, scale=1.0):
     (h, w) = image.shape[:2]

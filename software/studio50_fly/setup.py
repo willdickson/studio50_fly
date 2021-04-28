@@ -18,4 +18,7 @@ setup(
         'Programming Language :: Python :: 3.5',
     ],
     packages=find_packages(exclude=['examples',]),
+    entry_points = {
+        'console_scripts' : ['studio50 = studio50_fly.command_line:main'],
+        },
 )

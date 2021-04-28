@@ -5,7 +5,7 @@ from studio50_fly import DisplayMode
 from studio50_fly import DisplayController
 
 param = {
-        'monitor_name'    : 'DP-1',
+        'device'    : 'DP-1',
         'gen_image_scale' :  3, 
         'images': {
             'checker_20x20_black_green' : 'checker_20x20_black_green_640x360.jpg',
