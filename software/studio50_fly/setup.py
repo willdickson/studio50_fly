@@ -19,6 +19,6 @@ setup(
     ],
     packages=find_packages(exclude=['examples',]),
     entry_points = {
-        'console_scripts' : ['studio50 = studio50_fly.command_line:main'],
+        'console_scripts' : ['studio50 = studio50_fly.command_line:cli'],
         },
 )

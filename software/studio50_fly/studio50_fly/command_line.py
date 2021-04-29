@@ -1,21 +1,24 @@
 import click 
+import cv2
+from .calibration import run_position_calibration
 from .calibration import run_homography_calibration
 
 @click.group()
-def main():
+def cli():
     pass
 
-
 @click.command()
-def cal():
-    run_homography_calibration()
-
-
+@click.argument('cal_type')
+def cal(cal_type):
+    cal_type = cal_type.lower()
+    if cal_type == 'homography' or cal_type == 'hom':
+        run_homography_calibration()
+    if cal_type == 'position' or cal_type == 'pos':
+        run_position_calibration()
 
 @click.command()
 def run():
     print('running trial!')
 
-
-main.add_command(cal)
-main.add_command(run)
+cli.add_command(cal)
+cli.add_command(run)

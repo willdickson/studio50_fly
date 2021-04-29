@@ -1,5 +1,8 @@
+import os
 import cv2
 import time
+import pickle
+import numpy as np
 from .config import Config
 from .camera import Camera
 from .utility import get_user_monitor
@@ -9,19 +12,17 @@ from .display_controller import DisplayMode
 from .display_controller import DisplayController
 
 
-
 def run_homography_calibration():
 
     print()
-    print('* running homography calibration')
+    print(' homography calibration')
+    print(' ======================')
     print()
-    print('* make sure IR filter is removed from arena and press enter to continue (q=quit)')
+    print(' make sure IR filter is removed and  press enter to continue',end='')
+    print()
     ans = input()
-    if ans == 'q':
-        exit(0)
 
-    window_name = 'homography calibration'
-
+    window_name = 'calibration'
     config = Config()
 
     camera = Camera(config['camera'])
@@ -33,7 +34,6 @@ def run_homography_calibration():
     cv2.namedWindow(window_name)
     cv2.resizeWindow(window_name,config['camera']['width'], config['camera']['height'])
     cv2.moveWindow(window_name, user_monitor.width - config['camera']['width'], 0)
-
 
     homography_config = config['calibration']['homography']
     cal_data = {'camera_pts' : [], 'projector_pts': []}
@@ -77,8 +77,8 @@ def run_homography_calibration():
         
         # Attempt to find blobs in image 
         while not blob_finding_done:
-            rval, image = camera.read()
-            if rval:
+            ok, image = camera.read()
+            if ok:
                 gray_image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
                 blob_list, blob_image, thresh_image = blob_finder.find(gray_image)
 
@@ -92,7 +92,7 @@ def run_homography_calibration():
                         blob_y = blob['centroid_y']
                         cal_data['camera_pts'].append((blob_x, blob_y))
                         cal_data['projector_pts'].append(pt)
-                        print(f'  blob found: {blob_x}, {blob_y}')
+                        print(f'  (cx,cy) = {blob_x}, {blob_y}')
 
                 attempt_count += 1
                 if not blob_finding_done:
@@ -108,7 +108,7 @@ def run_homography_calibration():
         projector_pts_pred = homography.reproject_cal_data()
 
         print()
-        print(f'reprojection error: {error:0.3}')
+        print(f'  reprojection error: {error:0.3}')
         print()
 
         display_state = {
@@ -131,25 +131,118 @@ def run_homography_calibration():
                 }
         display.update_image(display_state)
 
-        print('save calibration data (y=yes, n=no)')
+        print(' save calibration data (y=yes, n=no)')
         save_dialog_done = False
         while not save_dialog_done:
             key = cv2.waitKey(0) & 0xff
             if (key == ord('y')):
+                print(f' saving calibration to: {homography.calibration_file}')
                 homography.save_calibration()
                 save_dialog_done = True
             elif (key == ord('n')):
+                print(' calibration not saved!')
                 save_dialog_done = True
             else:
-                print('please enter y or n')
+                print(' please enter y or n')
         print()
 
-    cv2.destroyAllWindows()
     camera.release()
+    cv2.destroyAllWindows()
 
 
+def run_position_calibration():
+    print()
+    print(' position calibration (press q when done)')
+    print(' ========================================')
+    print()
 
-def run_arena_calibration():
-    pass
+    window_name = 'calibration'
+
+    config = Config()
+
+    camera = Camera(config['camera'])
+    display = DisplayController(config['projector'])
+    user_monitor = get_user_monitor(config['monitor'])
+
+    cv2.namedWindow(window_name)
+    cv2.resizeWindow(window_name,config['camera']['width'], config['camera']['height'])
+    cv2.moveWindow(window_name, user_monitor.width - config['camera']['width'], 0)
+
+    display_state = {'mode': DisplayMode.SOLID, 'kwargs': {'color': (255, 255, 255)}}
+    display.update_image(display_state)
+    cv2.waitKey(10)
+
+    done = False
+    while not done:
+        ok, frame = camera.read()
+        if ok:
+            arena_data = find_arena(frame, threshold=50)
+            cv2.imshow(window_name, arena_data['contour_image'])
+    
+        key = cv2.waitKey(1) & 0xff
+        if key == ord('q'): 
+            done = True
+    
+    display_state = {'mode': DisplayMode.BLACK, 'kwargs': {}}
+    display.update_image(display_state)
+
+    print(' save calibration data (y=yes, n=no)')
+    save_dialog_done = False
+    while not save_dialog_done:
+        key = cv2.waitKey(0) & 0xff
+        if (key == ord('y')):
+            filename = os.path.join(config.path,config['calibration']['position']['filename'])
+            print(f' saving calibration to: {filename}')
+            with open(filename, 'wb') as f:
+                pickle.dump(arena_data,f)
+            save_dialog_done = True
+        elif (key == ord('n')):
+            print(' calibration not saved!')
+            save_dialog_done = True
+        else:
+            print(' please enter y or n')
+    print()
+
+    camera.release()
+    cv2.destroyAllWindows()
 
 
+def find_arena(image, threshold=100):
+    gray_image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+    rval, threshold_image = cv2.threshold(gray_image, threshold, np.iinfo(image.dtype).max, cv2.THRESH_BINARY)
+    contour_list, dummy = cv2.findContours(threshold_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
+
+    area_array = np.array([cv2.contourArea(c) for c in contour_list])
+    if area_array.size < 1:
+        contour_data = {
+                'area' : 0,
+                'contour': None,  
+                'centroid_x': 0,
+                'centroid_y': 0,
+                'contour_image': image,
+                'bounding_box' : None,
+                }
+    else:
+        ind_of_max = area_array.argmax()
+        area = area_array[ind_of_max]
+        contour = contour_list[ind_of_max]
+        moments = cv2.moments(contour) 
+        centroid_x = int(np.round(moments['m10']/moments['m00']))
+        centroid_y = int(np.round(moments['m01']/moments['m00']))
+        bounding_box = cv2.boundingRect(contour)
+
+        contour_image = cv2.cvtColor(gray_image,cv2.COLOR_GRAY2BGR)
+        cv2.drawContours(contour_image,[contour],-1,(0,0,255),2)
+        cv2.circle(contour_image,(int(centroid_x),int(centroid_y)),10,(255,0,),2)
+        bbx, bby, bbw, bbh = bounding_box
+        cv2.rectangle(contour_image,(bbx,bby),(bbx+bbw,bby+bbh),(0,255,0),2)
+
+        contour_data = {
+                'area' : area,
+                'contour': contour,  
+                'centroid_x': centroid_x,
+                'centroid_y': centroid_y,
+                'contour_image': contour_image,
+                'bounding_box' : bounding_box,
+                }
+    return contour_data

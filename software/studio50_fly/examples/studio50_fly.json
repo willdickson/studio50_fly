@@ -21,13 +21,16 @@
             "filename"    : "homography.pkl",
             "x_range"     : [-200, 200],
             "y_range"     : [-200, 200],
-            "step_size"   : 150,
+            "step_size"   : 50,
             "circle_size" : 10,
             "blob_finder" : {
                 "max_attempts" : 20,
                 "min_required" : 10,
                 "capture_dt"   : 0.1
             }
+        },
+        "position" : {
+            "filename": "position.pkl"
         }
     }
 }
