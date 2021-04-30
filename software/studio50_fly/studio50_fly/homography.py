@@ -6,7 +6,7 @@ import numpy as np
 
 class Homography:
 
-    def __init__(self,config, cal_data=None):
+    def __init__(self, config, cal_data=None):
         self.config = config
         if cal_data is not None:
             self.cal_data = {

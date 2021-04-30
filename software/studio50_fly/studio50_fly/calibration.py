@@ -12,6 +12,26 @@ from .display_controller import DisplayMode
 from .display_controller import DisplayController
 
 
+class Calibration:
+
+    def __init__(self,config):
+        self.config = config
+        self.load_homography_cal()
+        self.load_position_cal()
+
+    def load_homography_cal(self):
+        self.homography = Homography(self.config)
+
+    def load_position_cal(self):
+        filename = self.config['calibration']['position']['filename']
+        filename = os.path.join(self.config.path,filename)
+        with open(filename,'rb') as f:
+            self.arena = pickle.load(f)
+
+
+# Calibration procedures
+# ---------------------------------------------------------------------------------------  
+
 def run_homography_calibration():
 
     print()
@@ -25,9 +45,9 @@ def run_homography_calibration():
     window_name = 'calibration'
     config = Config()
 
-    camera = Camera(config['camera'])
-    display = DisplayController(config['projector'])
-    user_monitor = get_user_monitor(config['monitor'])
+    camera = Camera(config, calibration=True)
+    display = DisplayController(config)
+    user_monitor = get_user_monitor(config)
 
     blob_finder = BlobFinder(**config['calibration']['blob_finder'])
 
@@ -66,7 +86,7 @@ def run_homography_calibration():
         key = cv2.waitKey(100) & 0xff
         if key == ord('q'): 
             print()
-            print('collection aborted')
+            print(' calibration aborted')
             print()
             aborted = True
             break
@@ -160,9 +180,9 @@ def run_position_calibration():
 
     config = Config()
 
-    camera = Camera(config['camera'])
-    display = DisplayController(config['projector'])
-    user_monitor = get_user_monitor(config['monitor'])
+    camera = Camera(config, calibration=True)
+    display = DisplayController(config)
+    user_monitor = get_user_monitor(config)
 
     cv2.namedWindow(window_name)
     cv2.resizeWindow(window_name,config['camera']['width'], config['camera']['height'])

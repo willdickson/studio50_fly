@@ -1,0 +1,25 @@
+{
+    "images" : {
+        "checker" : "checker_20x20_black_white_640x360.jpg"
+    },
+    "trials" : {
+        "blank" : { 
+            "display_mode": "black",
+            "duration": 2.0
+        },
+        "checker" : {
+            "display_mode": "static_image",
+            "duration": 5.0,
+            "image": "checker"
+        },
+        "rotation" : {
+            "display_mode": "rotating_rays",
+            "duration": 5.0,
+            "velocity": 10 ,
+            "center":  "arena"
+        }
+    },
+    "schedule" : ["blank", "checker", "blank", "rotation", "blank", "checker", "blank"],
+    "cycles": 1 
+}
+

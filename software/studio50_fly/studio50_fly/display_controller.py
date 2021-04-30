@@ -9,6 +9,7 @@ from .utility import get_monitor_dict
 
 
 class DisplayMode(enum.Enum):
+
     BLACK = 0
     SOLID = 1
     STATIC_IMAGE = 2
@@ -20,8 +21,14 @@ class DisplayMode(enum.Enum):
 
 class DisplayController:
 
-    def __init__(self,param):
-        self.param = param
+    def __init__(self, config, images=None):
+        self.config = config
+        self.param = dict(self.config['projector'])
+        if images is not None:
+            try:
+                self.param['images'].update(images)
+            except KeyError:
+                self.param['images'] = images
         self.image_dict = {}
         self.load_images()
        
@@ -101,9 +108,10 @@ class DisplayController:
             image = cv2.circle(image,(int(pos[0]), int(pos[1])), size, color, cv2.FILLED, cv2.LINE_8,0)
         return image
 
-    def update_image(self,state):
+    def update_image(self,state,show=True):
         image = self.image_methods[state['mode']](**state['kwargs'])
-        cv2.imshow(self.window_name, image)
+        if show:
+            cv2.imshow(self.window_name, image)
         return image
 
 #
