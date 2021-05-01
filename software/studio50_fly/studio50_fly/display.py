@@ -85,7 +85,7 @@ class DisplayController:
         return image_rotated
 
     def rotating_rays_image(self, t=0.0, pos=(0,0), rate=0.0, num_rays=3, color=(255,255,255)):
-        scale = int(self.param['gen_image_scale'])
+        scale = int(self.param['ray_image_scale'])
         x, y = pos
         x_scaled = x//scale
         y_scaled = y//scale

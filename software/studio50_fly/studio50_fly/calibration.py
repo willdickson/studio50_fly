@@ -5,11 +5,11 @@ import pickle
 import numpy as np
 from .config import Config
 from .camera import Camera
-from .utility import get_user_monitor
-from .blob_finder import BlobFinder
+from .display import DisplayMode
+from .display import DisplayController
 from .homography import Homography
-from .display_controller import DisplayMode
-from .display_controller import DisplayController
+from .blob_finder import BlobFinder
+from .utility import get_user_monitor
 
 
 class Calibration:
@@ -38,7 +38,9 @@ def run_homography_calibration():
     print(' homography calibration')
     print(' ======================')
     print()
-    print(' make sure IR filter is removed and  press enter to continue',end='')
+    print(' make sure IR light is off and the IR passfilter is removed') 
+    print()
+    print(' press enter to continue',end='')
     print()
     ans = input()
 

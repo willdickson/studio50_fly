@@ -1,6 +1,7 @@
 {
     "images" : {
-        "checker" : "checker_20x20_black_white_640x360.jpg"
+        "checker_white" : "checker_20x20_black_white_640x360.jpg",
+        "checker_green" : "checker_20x20_black_green_640x360.jpg"
     },
     "trials" : {
         "blank" : { 
@@ -10,16 +11,18 @@
         "checker" : {
             "display_mode": "static_image",
             "duration": 5.0,
-            "image": "checker"
+            "name": "checker_green"
         },
         "rotation" : {
             "display_mode": "rotating_rays",
-            "duration": 5.0,
-            "velocity": 10 ,
-            "center":  "arena"
+            "duration": 20.0,
+            "center":  "fly",
+            "num_rays": 15,
+            "color" : [255, 255, 0],
+            "rate": 15 
         }
     },
-    "schedule" : ["blank", "checker", "blank", "rotation", "blank", "checker", "blank"],
+    "schedule" : ["blank", "checker", "blank", "rotation", "blank"],
     "cycles": 1 
 }
 

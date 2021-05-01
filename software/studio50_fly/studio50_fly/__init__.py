@@ -1,2 +1,2 @@
-from .display_controller import DisplayMode
-from .display_controller import DisplayController
+from .display import DisplayMode
+from .display import DisplayController

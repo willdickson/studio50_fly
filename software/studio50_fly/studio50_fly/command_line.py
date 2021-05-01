@@ -5,7 +5,8 @@ from .trials import Trials
 from .calibration import run_position_calibration
 from .calibration import run_homography_calibration
 
-@click.group()
+
+@click.group(context_settings={'help_option_names':['-h','--help']})
 def cli():
     """ Command line interface for the studio50-flly walking arena.  """
     pass
@@ -13,9 +14,9 @@ def cli():
 @click.command()
 @click.argument('cal_type')
 def cal(cal_type):
-    """ run system calibration.
+    """ run a calibration routine.
 
-    CAL_TYPE: type of calibration homography (hom) or position (pos)
+    CAL_TYPE: type of calibration either homography (hom) or position (pos)
     """
     cal_type = cal_type.lower()
     if cal_type in ('homography','hom'):
@@ -34,8 +35,8 @@ def default_data_file():
 def fly(param_file, data_file):
     """ run experimental trials. 
 
-    PARAM_FILE: json configuration file containing the trial parameters 
-    DATA_FILE:  name of file to use for logging trial data
+    PARAM_FILE: configuration file containing the trial parameters (json)
+    DATA_FILE:  name of output file to use for saving data during trials
     """
     Trials(param_file, data_file).run()
 
