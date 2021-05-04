@@ -41,7 +41,7 @@
             "min_area" : 50
         },
         "circle" : {
-            "radius" : 5,
+            "radius" : 15,
             "color" : [0,255,0],
             "thickness" : 2
         }
