@@ -13,16 +13,24 @@
             "duration": 5.0,
             "name": "checker_green"
         },
-        "rotation" : {
+        "rotation_pos" : {
             "display_mode": "rotating_rays",
-            "duration": 20.0,
+            "duration": 10.0,
             "center":  "fly",
             "num_rays": 15,
             "color" : [255, 255, 0],
-            "rate": 15 
+            "rate": 25 
+        },
+        "rotation_neg" : {
+            "display_mode": "rotating_rays",
+            "duration": 10.0,
+            "center":  "fly",
+            "num_rays": 15,
+            "color" : [255, 255, 0],
+            "rate": -25 
         }
     },
-    "schedule" : ["blank", "checker", "blank", "rotation", "blank"],
+    "schedule" : ["blank", "checker", "blank", "rotation_pos", "blank" ],
     "cycles": 1 
 }
 

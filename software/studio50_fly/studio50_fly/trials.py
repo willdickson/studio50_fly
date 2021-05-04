@@ -3,6 +3,7 @@ import cv2
 import json
 import time
 import numpy as np
+from h5_logger import H5Logger
 from .config import Config
 from .camera import Camera
 from .utility import get_user_monitor
@@ -15,8 +16,11 @@ from .display import DisplayController
 
 class Trials:
 
+    POS_NOT_FOUND = (-1.0, -1.0)
+
     def __init__(self, param_file, data_file):
         self.param = None
+        self.logger = None
         self.t_start = 0.0
         self.files = {'param': param_file, 'data': data_file}
         self.load_param_file()
@@ -35,6 +39,17 @@ class Trials:
         with open(self.files['param'], 'r') as f:
             self.param = json.load(f)
 
+    def check_data_file(self):
+        if os.path.exists(self.files['data']):
+            print()
+            print(' data file already exists overwrite (y/n): ', end='')
+            ans = input()
+            print()
+            if not ans == 'y':
+                print(' ok ...  aborting run')
+                print()
+                exit(0)
+
     def create_camera_window(self):
         self.window_name = "studio50 file trials"
         cv2.namedWindow(self.window_name)
@@ -47,6 +62,13 @@ class Trials:
         window_pos_y = 0
         cv2.moveWindow(self.window_name, window_pos_x, window_pos_y)
 
+    def run_attributes(self):
+        attributes = {
+                'param'    : self.param,
+                'config'   : self.config.data,
+                'cal_data' : self.calibration.data(jsonable=True) 
+                }
+        return attributes 
 
     def run(self):
 
@@ -57,6 +79,9 @@ class Trials:
         print(f" param:  {self.files['param']}")
         print(f" output: {self.files['data']}")
         print()
+
+        self.check_data_file()
+        self.logger = H5Logger(self.files['data'],jsonparam=self.run_attributes())
 
         state = {'mode': DisplayMode.BLACK, 'kwargs': {}}
         self.display.update_image(state)
@@ -81,11 +106,15 @@ class Trials:
         trial_param = self.param['trials'][trial_name]
         len_schedule = len(self.param['schedule'])
         print(f'   trial {trial_num+1}/{len_schedule}: {trial_name}')
-        t_now = t_trial
-        pos = None
+
+        t_now  = t_trial
+        pos = self.POS_NOT_FOUND 
+
         while t_now - t_trial < trial_param['duration']:
+
             t_now = time.time()
-            t_elapsed = t_now - t_trial
+            t_elapsed_trial = t_now - t_trial
+            t_elapsed_total = t_now - self.t_start
             ok, image = self.camera.read()
             if ok:
                 gray_image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
@@ -95,7 +124,26 @@ class Trials:
                 if blob_list:
                     fly = get_max_area_blob(blob_list)
                     pos = (fly['centroid_x'], fly['centroid_y'])
-            self.update_display(t_elapsed, pos, trial_param)
+                    cv2.circle(
+                            image,
+                            (int(pos[0]),int(pos[1])),
+                            self.config['fly']['circle']['radius'],
+                            self.config['fly']['circle']['color'],
+                            self.config['fly']['circle']['thickness']
+                            )
+                    cv2.imshow(self.window_name, image)
+                else:
+                    pos = self.POS_NOT_FOUND
+                    cv2.imshow(self.window_name, image)
+
+                display_mode = self.update_display(t_elapsed_trial, pos, trial_param)
+                data = {
+                        't'            : t_elapsed_total,
+                        'position'     : pos,
+                        'image'        : gray_image,
+                        'display_mode' : display_mode,
+                        }
+                self.logger.add(data)
 
     def update_display(self, t, pos, trial_param): 
         display_mode = DisplayMode[trial_param['display_mode'].upper()] 
@@ -104,7 +152,7 @@ class Trials:
         elif display_mode == DisplayMode.STATIC_IMAGE:
             kwargs = {'name': trial_param['name']} 
         elif display_mode == DisplayMode.ROTATING_RAYS:
-            if (trial_param['center'] == 'arena') or (pos is None): 
+            if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
                 cx_arena = self.calibration.arena['centroid_x']
                 cy_arena = self.calibration.arena['centroid_y']
                 pos = (cx_arena, cy_arena)
@@ -119,7 +167,13 @@ class Trials:
         else:
             raise ValueError(f"unknown display mode {trial_param['display_mode']}")
         self.display.update_image({'mode': display_mode, 'kwargs': kwargs})
-        cv2.waitKey(1)
+        key = cv2.waitKey(1) & 0xff
+        if key == ord('q'):
+            print()
+            print(' run aborted!')
+            print()
+            exit(0)
+        return display_mode
 
     def find_bg_image(self):
         print(f' finding background image (press q when done)')

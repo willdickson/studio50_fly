@@ -8,7 +8,7 @@ from .utility import create_ray_image
 from .utility import get_monitor_dict
 
 
-class DisplayMode(enum.Enum):
+class DisplayMode(enum.IntEnum):
 
     BLACK = 0
     SOLID = 1

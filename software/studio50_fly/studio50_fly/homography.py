@@ -79,4 +79,14 @@ class Homography:
         error = error.mean()
         return error
 
+    def calibration_data(self,jsonable=True):
+        if jsonable:
+            cal_data = {
+                    'camera_pts'    : self.cal_data['camera_pts'].tolist(),
+                    'projector_pts' : self.cal_data['projector_pts'].tolist(),
+                    }
+            return cal_data
+        else:
+            return self.cal_data
+
 

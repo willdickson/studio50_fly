@@ -28,6 +28,26 @@ class Calibration:
         with open(filename,'rb') as f:
             self.arena = pickle.load(f)
 
+    def homography_data(self,jsonable=True):
+        return dict(self.homography.calibration_data(jsonable=jsonable))
+
+    def position_data(self,jsonable=True):
+        position_data = dict(self.arena)
+        if jsonable:
+            del position_data['contour_image']
+            for k,v in position_data.items():
+                if type(v) == np.ndarray:
+                    position_data[k] = v.tolist()
+        return position_data
+
+    def data(self,jsonable=True):
+        data = {
+                'position'   : self.position_data(jsonable=jsonable),
+                'homography' : self.homography_data(jsonable=jsonable),
+                }
+        return data
+
+
 
 # Calibration procedures
 # ---------------------------------------------------------------------------------------  

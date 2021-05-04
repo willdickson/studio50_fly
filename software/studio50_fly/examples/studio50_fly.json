@@ -39,6 +39,11 @@
         "blob_finder" : {
             "threshold" : 40,
             "min_area" : 50
+        },
+        "circle" : {
+            "radius" : 5,
+            "color" : [0,255,0],
+            "thickness" : 2
         }
     }
 }

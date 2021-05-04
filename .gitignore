@@ -1,4 +1,5 @@
 *~
 *.pyc
 *.swp
+*.hdf5
 software/studio50_fly/studio50_fly.egg-info
