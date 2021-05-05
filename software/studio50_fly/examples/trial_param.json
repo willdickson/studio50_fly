@@ -19,7 +19,7 @@
             "center":  "fly",
             "num_rays": 15,
             "color" : [255, 255, 255],
-            "rate": 20 
+            "rate": 30 
         },
         "rotation_neg" : {
             "display_mode": "rotating_rays",
@@ -27,7 +27,7 @@
             "center":  "fly",
             "num_rays": 15,
             "color" : [255, 255, 255],
-            "rate": -20 
+            "rate": -30 
         }
     },
     "schedule" : ["blank", "checker", "blank", "rotation_pos", "blank", "rotation_neg" ],

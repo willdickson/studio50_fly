@@ -4,17 +4,20 @@ import numpy as np
 
 class BlobFinder(object):
 
-    def __init__(self, threshold=200, filter_by_area=True, min_area=100, max_area=None):
+    def __init__(self, threshold=200, filter_by_area=True, min_area=100, max_area=None, mask=None):
         self.threshold = threshold
         self.filter_by_area = filter_by_area 
         self.min_area = min_area 
         self.max_area = max_area 
+        self.mask = mask
 
     def find(self,image):
         if self.threshold == 'otsu':
             rval, thresh_image = cv2.threshold(image, 0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
         else:
             rval, thresh_image = cv2.threshold(image, self.threshold,255,cv2.THRESH_BINARY)
+        if self.mask is not None:
+            thresh_image = np.bitwise_and(thresh_image, self.mask)
         contour_list, _ = cv2.findContours(thresh_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         blob_list = []
@@ -47,27 +50,17 @@ class BlobFinder(object):
 
             # Get bounding rectangle
             if blob_ok:
-                bound_rect = cv2.boundingRect(contour)
-                min_x = bound_rect[0]
-                min_y = bound_rect[1]
-                max_x = bound_rect[0] + bound_rect[2] 
-                max_y = bound_rect[1] + bound_rect[3] 
+                bounding_box = cv2.boundingRect(contour)
             else:
-                min_x = 0.0 
-                min_y = 0.0
-                max_x = 0.0
-                max_y = 0.0
+                bounding_box = (0,0,0,0)
 
             # Create blob dictionary
             blob = {
-                    'moments'    : moments,
-                    'centroid_x' : centroid_x,
-                    'centroid_y' : centroid_y,
-                    'min_x'      : min_x,
-                    'max_x'      : max_x,
-                    'min_y'      : min_y,
-                    'max_y'      : max_y,
-                    'area'       : area,
+                    'moments'      : moments,
+                    'centroid_x'   : centroid_x,
+                    'centroid_y'   : centroid_y,
+                    'bounding_box' : bounding_box,
+                    'area'         : area,
                     } 
 
             # If blob is OK add to list of blobs

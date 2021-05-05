@@ -40,6 +40,9 @@
         "background" : {
             "min_count" : 50
         },
+        "arena_mask" : {
+            "kernel_size" : 7
+        },
         "blob_finder" : {
             "threshold" : 40,
             "min_area" : 40
@@ -52,8 +55,13 @@
         "line" : {
             "color": [255,0,0],
             "thickness" : 2,
-            "start" : 15,
-            "stop"  : 25
+            "length" : 10
+        },
+        "log": {
+            "image" : {
+                "type" : "arena",
+                "fly_image_size" : 50 
+            }
         }
     }
 }
