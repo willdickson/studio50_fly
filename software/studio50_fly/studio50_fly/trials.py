@@ -7,6 +7,7 @@ from h5_logger import H5Logger
 from .config import Config
 from .camera import Camera
 from .utility import get_user_monitor
+from .utility import get_angle_and_body_vector
 from .blob_finder import BlobFinder
 from .homography import Homography
 from .calibration import Calibration
@@ -25,7 +26,7 @@ class Trials:
         self.files = {'param': param_file, 'data': data_file}
         self.load_param_file()
         self.config = Config()
-        self.camera = Camera(self.config)
+        self.camera = Camera(self.config, 'fly')
         self.calibration = Calibration(self.config)
         self.user_monitor = get_user_monitor(self.config)
         self.display = DisplayController(self.config, images=self.param['images'])
@@ -55,6 +56,11 @@ class Trials:
         cv2.namedWindow(self.window_name)
         cv2.resizeWindow(
                 self.window_name, 
+                self.config['camera']['width'], 
+                self.config['camera']['height']
+                )
+        cv2.resizeWindow(
+                'threshold', 
                 self.config['camera']['width'], 
                 self.config['camera']['height']
                 )
@@ -121,9 +127,14 @@ class Trials:
                 diff_image = cv2.absdiff(gray_image, self.bg_image) 
                 blob_list, blob_image, thresh_image = self.blob_finder.find(diff_image)
 
+                cv2.imshow('threshold', thresh_image)
+
                 if blob_list:
                     fly = get_max_area_blob(blob_list)
                     pos = (fly['centroid_x'], fly['centroid_y'])
+                    angle, vector = get_angle_and_body_vector(fly['moments']) 
+                    #print(f'angle: {np.rad2deg(angle)}')
+                    self.add_fly_line_to_image(image, (fly['centroid_x'],fly['centroid_y']),vector)
                     cv2.circle(
                             image,
                             (int(pos[0]),int(pos[1])),
@@ -133,8 +144,8 @@ class Trials:
                             )
                     cv2.imshow(self.window_name, image)
                 else:
-                    pos = self.POS_NOT_FOUND
                     cv2.imshow(self.window_name, image)
+                #cv2.imshow(self.window_name, blob_image)
 
                 display_mode = self.update_display(t_elapsed_trial, pos, trial_param)
                 data = {
@@ -175,22 +186,39 @@ class Trials:
             exit(0)
         return display_mode
 
+    def add_fly_line_to_image(self,image,pos,vector): 
+        s0,s1= self.config['fly']['line']['start'], self.config['fly']['line']['stop']
+        cx, cy = pos
+        for sign in (1,-1):
+            pt0 = int(cx + sign*s0*vector[0]), int(cy + sign*s0*vector[1])
+            pt1 = int(cx + sign*s1*vector[0]), int(cy + sign*s1*vector[1])
+            cv2.line(
+                    image, 
+                    pt0, 
+                    pt1, 
+                    self.config['fly']['line']['color'], 
+                    self.config['fly']['line']['thickness']
+                    )
+
     def find_bg_image(self):
         print(f' finding background image (press q when done)')
         self.zero_bg_image()
         cv2.imshow(self.window_name, self.bg_image)
         cv2.waitKey(1)
 
+        cnt = 0
         done = False
         while not done:
             ok, image = self.camera.read()
             if ok:
-                gray_image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
-                self.bg_image = np.maximum(self.bg_image, gray_image)
-                cv2.imshow(self.window_name, self.bg_image)
-                key = cv2.waitKey(1) & 0xff
-                if key == ord('q'):
-                    done = True
+                if cnt > self.config['fly']['background']['min_count']:
+                    gray_image = cv2.cvtColor(image,cv2.COLOR_BGR2GRAY)
+                    self.bg_image = np.maximum(self.bg_image, gray_image)
+                    cv2.imshow(self.window_name, self.bg_image)
+                    key = cv2.waitKey(1) & 0xff
+                    if key == ord('q'):
+                        done = True
+                cnt += 1
         print()
 
     def zero_bg_image(self):
@@ -203,6 +231,9 @@ def get_max_area_blob(blob_list):
     blob_area_array = np.array([blob['area'] for blob in blob_list])
     ind = blob_area_array.argmax()
     return blob_list[ind]
+
+def add_fly_line(image, pos, vector):
+    pass
 
 
 #class DisplayProcess:

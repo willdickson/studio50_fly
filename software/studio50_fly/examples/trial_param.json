@@ -11,26 +11,26 @@
         "checker" : {
             "display_mode": "static_image",
             "duration": 5.0,
-            "name": "checker_green"
+            "name": "checker_white"
         },
         "rotation_pos" : {
             "display_mode": "rotating_rays",
-            "duration": 10.0,
+            "duration": 120.0,
             "center":  "fly",
             "num_rays": 15,
-            "color" : [255, 255, 0],
-            "rate": 25 
+            "color" : [255, 255, 255],
+            "rate": 20 
         },
         "rotation_neg" : {
             "display_mode": "rotating_rays",
-            "duration": 10.0,
+            "duration": 120.0,
             "center":  "fly",
             "num_rays": 15,
-            "color" : [255, 255, 0],
-            "rate": -25 
+            "color" : [255, 255, 255],
+            "rate": -20 
         }
     },
-    "schedule" : ["blank", "checker", "blank", "rotation_pos", "blank" ],
+    "schedule" : ["blank", "checker", "blank", "rotation_pos", "blank", "rotation_neg" ],
     "cycles": 1 
 }
 

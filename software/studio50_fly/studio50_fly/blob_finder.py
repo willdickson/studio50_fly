@@ -60,13 +60,14 @@ class BlobFinder(object):
 
             # Create blob dictionary
             blob = {
+                    'moments'    : moments,
                     'centroid_x' : centroid_x,
                     'centroid_y' : centroid_y,
                     'min_x'      : min_x,
                     'max_x'      : max_x,
                     'min_y'      : min_y,
                     'max_y'      : max_y,
-                    'area'      : area,
+                    'area'       : area,
                     } 
 
             # If blob is OK add to list of blobs

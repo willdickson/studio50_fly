@@ -10,9 +10,11 @@ def get_monitor_dict():
         monitor_dict[item.name] = item
     return monitor_dict
 
+
 def get_user_monitor(config):
     monitor_dict = get_monitor_dict()
     return monitor_dict[config['monitor']['device']]
+
 
 def rotate_image(image, angle, center=None, scale=1.0):
     (h, w) = image.shape[:2]
@@ -38,3 +40,16 @@ def create_ray_image(x0, y0, angle, image_shape, num_rays, color=(0,255,0)):
     ray_image = np.zeros((nrow, ncol, nchan), dtype=np.float)
     ray_image[mask,:] = color
     return ray_image
+
+
+def get_angle_and_body_vector(moments): 
+    """
+    Computre the angle and body vector given the image/blob moments
+    """
+    body_cov = np.array( [ [moments['mu20'], moments['mu11']], [moments['mu11'], moments['mu02'] ]])
+    eig_vals, eig_vecs = np.linalg.eigh(body_cov)
+    max_eig_ind = np.argmax(eig_vals**2)
+    max_eig_vec = eig_vecs[:,max_eig_ind]
+    angle = np.arctan2(max_eig_vec[1], max_eig_vec[0])
+    return angle, max_eig_vec
+

@@ -1,10 +1,9 @@
 {
     "camera": {
-        "device"   : "/dev/video0",
-        "width"    : 1280,
-        "height"   : 1024,
-        "fourcc"   : "MJPG",
-        "exposure" : 300
+        "device" : "/dev/video0",
+        "width" : 1280,
+        "height" : 1024,
+        "fourcc" : "MJPG"
     },
     "projector" : { 
         "device" : "DP-1",
@@ -15,35 +14,46 @@
         "device" : "HDMI-0"
     },
     "calibration" : {
-        "blob_finder" : {
-            "threshold" : 40,
-            "min_area"  : 50
-        },
         "homography" : {
-            "filename"    : "homography.pkl",
-            "x_range"     : [-200, 200],
-            "y_range"     : [-200, 200],
-            "step_size"   : 50,
+            "exposure" : 50,
+            "filename" : "homography.pkl",
+            "x_range" : [-200, 200],
+            "y_range" : [-200, 200],
+            "step_size" : 50,
             "circle_size" : 10,
+            "max_attempts" : 20,
+            "min_required" : 10,
+            "capture_dt"   : 0.1,
             "blob_finder" : {
-                "max_attempts" : 20,
-                "min_required" : 10,
-                "capture_dt"   : 0.1
+                "threshold" : 70,
+                "min_area"  : 50
             }
         },
         "position" : {
-            "filename": "position.pkl"
+            "exposure" : 100,
+            "filename": "position.pkl",
+            "threshold" : 40
         }
     },
     "fly" : {
+        "exposure" : 10,
+        "background" : {
+            "min_count" : 50
+        },
         "blob_finder" : {
             "threshold" : 40,
-            "min_area" : 50
+            "min_area" : 40
         },
         "circle" : {
             "radius" : 15,
             "color" : [0,255,0],
             "thickness" : 2
+        },
+        "line" : {
+            "color": [255,0,0],
+            "thickness" : 2,
+            "start" : 15,
+            "stop"  : 25
         }
     }
 }

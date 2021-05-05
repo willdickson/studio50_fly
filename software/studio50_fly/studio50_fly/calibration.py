@@ -66,18 +66,18 @@ def run_homography_calibration():
 
     window_name = 'calibration'
     config = Config()
+    homography_config = config['calibration']['homography']
 
-    camera = Camera(config, calibration=True)
+    camera = Camera(config,'calibration-homography')
     display = DisplayController(config)
     user_monitor = get_user_monitor(config)
 
-    blob_finder = BlobFinder(**config['calibration']['blob_finder'])
+    blob_finder = BlobFinder(**homography_config['blob_finder'])
 
     cv2.namedWindow(window_name)
     cv2.resizeWindow(window_name,config['camera']['width'], config['camera']['height'])
     cv2.moveWindow(window_name, user_monitor.width - config['camera']['width'], 0)
 
-    homography_config = config['calibration']['homography']
     cal_data = {'camera_pts' : [], 'projector_pts': []}
 
     # Create test points for homography calibration
@@ -127,7 +127,7 @@ def run_homography_calibration():
                 if len(blob_list) == 1:
                     blob = blob_list[0]
                     blob_found_count += 1
-                    if blob_found_count >= homography_config['blob_finder']['min_required']:
+                    if blob_found_count >= homography_config['min_required']:
                         cv2.imshow(window_name, blob_image)
                         blob_finding_done = True
                         blob_x = blob['centroid_x']
@@ -138,10 +138,10 @@ def run_homography_calibration():
 
                 attempt_count += 1
                 if not blob_finding_done:
-                    if attempt_count > homography_config['blob_finder']['max_attempts']:  
+                    if attempt_count > homography_config['max_attempts']:  
                         blob_finding_done = True
 
-            time.sleep(homography_config['blob_finder']['capture_dt'])
+            time.sleep(homography_config['capture_dt'])
 
     if not aborted:
 
@@ -202,7 +202,7 @@ def run_position_calibration():
 
     config = Config()
 
-    camera = Camera(config, calibration=True)
+    camera = Camera(config, 'calibration-position')
     display = DisplayController(config)
     user_monitor = get_user_monitor(config)
 
@@ -218,7 +218,7 @@ def run_position_calibration():
     while not done:
         ok, frame = camera.read()
         if ok:
-            arena_data = find_arena(frame, threshold=50)
+            arena_data = find_arena(frame, threshold=config['calibration']['position']['threshold'])
             cv2.imshow(window_name, arena_data['contour_image'])
     
         key = cv2.waitKey(1) & 0xff
