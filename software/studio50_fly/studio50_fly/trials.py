@@ -130,6 +130,8 @@ class Trials:
 
         t_now  = t_trial
         pos = self.POS_NOT_FOUND 
+        body_angle = 0.0
+        body_vector = np.array([0.0, 0.0])
 
         while t_now - t_trial < trial_param['duration']:
 
@@ -152,9 +154,8 @@ class Trials:
                     found = True
                     fly = get_max_area_blob(blob_list)
                     pos = (fly['centroid_x'], fly['centroid_y'])
-                    angle, vector = get_angle_and_body_vector(fly['moments']) 
-                    #print(f'angle: {np.rad2deg(angle)}')
-                    self.add_fly_line_to_image(image, (fly['centroid_x'],fly['centroid_y']),vector)
+                    body_angle, body_vector = get_angle_and_body_vector(fly['moments']) 
+                    self.add_fly_line_to_image(image, (fly['centroid_x'],fly['centroid_y']), body_vector)
                     cv2.circle(
                             image,
                             (int(pos[0]),int(pos[1])),
@@ -178,11 +179,15 @@ class Trials:
 
                 display_mode = self.update_display(t_elapsed_trial, pos, trial_param)
                 data = {
-                        't'            : t_elapsed_total,
-                        'position'     : pos,
-                        'image'        : log_image,
-                        'display_mode' : display_mode,
                         'found'        : found,
+                        't_total'      : t_elapsed_total,
+                        't_trial'      : t_elapsed_trial,
+                        'position'     : pos,
+                        'body_angle'   : body_angle,
+                        'body_vector'  : body_vector,
+                        'display_mode' : display_mode,
+                        'trial_num'    : trial_num,
+                        'image'        : log_image,
                         }
                 self.logger.add(data)
 
