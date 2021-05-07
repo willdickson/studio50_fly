@@ -155,28 +155,10 @@ class Trials:
                     fly = get_max_area_blob(blob_list)
                     pos = (fly['centroid_x'], fly['centroid_y'])
                     body_angle, body_vector = get_angle_and_body_vector(fly['moments']) 
-                    self.add_fly_line_to_image(image, (fly['centroid_x'],fly['centroid_y']), body_vector)
-                    cv2.circle(
-                            image,
-                            (int(pos[0]),int(pos[1])),
-                            self.config['fly']['circle']['radius'],
-                            self.config['fly']['circle']['color'],
-                            self.config['fly']['circle']['thickness']
-                            )
+                    self.draw_indicators_on_image(image, (fly['centroid_x'],fly['centroid_y']), body_vector)
+
                 cv2.imshow(self.window_name, image)
-
-                log_image_type =  self.config['fly']['log']['image']['type']
-                if log_image_type == 'full':
-                    log_image = gray_image
-                elif log_image_type == 'arena':
-                    bbx, bby, bbw, bbh = self.calibration.arena['bounding_box']
-                    log_image = gray_image[bby:bby+bbh,bbx:bbx+bbw]
-                elif log_image_type == 'fly':
-                    image_size = self.config['fly']['log']['image']['fly_image_size']
-                    raise ValueError(f'log image type {log_image_type} not implemented yet')
-                else:
-                    raise ValueError(f'unknown log image type {log_image_type}')
-
+                log_image = self.get_log_image(pos, gray_image)
                 display_mode = self.update_display(t_elapsed_trial, pos, trial_param)
                 data = {
                         'found'        : found,
@@ -221,10 +203,39 @@ class Trials:
             exit(0)
         return display_mode
 
-    def add_fly_line_to_image(self,image,pos,vector): 
+    def get_log_image(self, pos, image):
+        log_image_type =  self.config['fly']['log']['image']['type']
+        if log_image_type == 'full':
+            log_image = image
+        elif log_image_type == 'arena':
+            bbx, bby, bbw, bbh = self.calibration.arena['bounding_box']
+            log_image = image[bby:bby+bbh,bbx:bbx+bbw]
+        elif log_image_type == 'fly':
+            image_h, image_w = image.shape
+            log_image_shape = self.config['fly']['log']['image']['fly_image_shape']
+            log_image_h, log_image_w =  log_image_shape 
+            fly_x, fly_y = int(pos[0]), int(pos[1])
+            # Get lower left (x0,y0)  and upper right (x1,y1) corners for sub_image 
+            x0 = fly_x - log_image_w//2 
+            y0 = fly_y - log_image_h//2
+            x1 = x0 + log_image_w 
+            y1 = y0 + log_image_h
+            # Get adjustments for when part ofsub_image if outside of image
+            m0 =  0 if x0 > -1 else -x0
+            n0 =  0 if y0 > -1 else -y0
+            m1 = log_image_w if x1 < image_w else -(x1 - image_w + 1)
+            n1 = log_image_h if y1 < image_h else -(y1 - image_h + 1)
+            log_image = np.zeros(log_image_shape, dtype=np.uint8)
+            log_image[n0:n1,m0:m1] = image[y0:y1, x0:x1]
+        else: 
+            raise ValueError(f'unknown log image type {log_image_type}')
+        return log_image
+
+    def draw_indicators_on_image(self, image, pos, vector):
+        # Body orientation line
         s0 = self.config['fly']['circle']['radius']
         s1 = s0 + self.config['fly']['line']['length']
-        cx, cy = pos
+        cx, cy = int(pos[0]), int(pos[1])
         for sign in (1,-1):
             pt0 = int(cx + sign*s0*vector[0]), int(cy + sign*s0*vector[1])
             pt1 = int(cx + sign*s1*vector[0]), int(cy + sign*s1*vector[1])
@@ -235,6 +246,15 @@ class Trials:
                     self.config['fly']['line']['color'], 
                     self.config['fly']['line']['thickness']
                     )
+
+        # Circle around fly position
+        cv2.circle(
+                image,
+                (cx, cy),
+                self.config['fly']['circle']['radius'],
+                self.config['fly']['circle']['color'],
+                self.config['fly']['circle']['thickness']
+                )
 
     def find_bg_image(self):
         print(f' finding background image (press q when done)')

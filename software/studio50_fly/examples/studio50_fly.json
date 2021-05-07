@@ -59,8 +59,8 @@
         },
         "log": {
             "image" : {
-                "type" : "arena",
-                "fly_image_size" : 50 
+                "type" : "fly",
+                "fly_image_shape" : [100,100] 
             }
         }
     }
