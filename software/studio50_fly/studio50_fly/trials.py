@@ -228,7 +228,7 @@ class Trials:
             n1 = log_image_h if y1 < (image_h + 1) else -(y1 - image_h)
             # Make sure actual x0 and y0 used are >= 0
             x0 = 0 if x0 < 0 else x0
-            y0 = 0 if x0 < 0 else y0
+            y0 = 0 if y0 < 0 else y0
             # Create log image and assign subregion
             log_image = np.zeros(log_image_shape, dtype=np.uint8)
             log_image[n0:n1,m0:m1] = image[y0:y1, x0:x1]
