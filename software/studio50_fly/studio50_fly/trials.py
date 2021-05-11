@@ -8,6 +8,7 @@ from .config import Config
 from .camera import Camera
 from .utility import get_user_monitor
 from .utility import get_angle_and_body_vector
+from .utility import get_max_area_blob
 from .blob_finder import BlobFinder
 from .homography import Homography
 from .calibration import Calibration
@@ -223,8 +224,12 @@ class Trials:
             # Get adjustments for when part ofsub_image if outside of image
             m0 =  0 if x0 > -1 else -x0
             n0 =  0 if y0 > -1 else -y0
-            m1 = log_image_w if x1 < image_w else -(x1 - image_w + 1)
-            n1 = log_image_h if y1 < image_h else -(y1 - image_h + 1)
+            m1 = log_image_w if x1 < (image_w + 1) else -(x1 - image_w)
+            n1 = log_image_h if y1 < (image_h + 1) else -(y1 - image_h)
+            # Make sure actual x0 and y0 used are >= 0
+            x0 = 0 if x0 < 0 else x0
+            y0 = 0 if x0 < 0 else y0
+            # Create log image and assign subregion
             log_image = np.zeros(log_image_shape, dtype=np.uint8)
             log_image[n0:n1,m0:m1] = image[y0:y1, x0:x1]
         else: 
@@ -291,10 +296,4 @@ class Trials:
         return arena_mask
 
 
-# ------------------------------------------------------------------------------------------------
-
-def get_max_area_blob(blob_list):
-    blob_area_array = np.array([blob['area'] for blob in blob_list])
-    ind = blob_area_array.argmax()
-    return blob_list[ind]
 

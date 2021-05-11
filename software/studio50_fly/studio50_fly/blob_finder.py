@@ -4,20 +4,28 @@ import numpy as np
 
 class BlobFinder(object):
 
-    def __init__(self, threshold=200, filter_by_area=True, min_area=100, max_area=None, mask=None):
+    def __init__(self, threshold=200, filter_by_area=True, min_area=100, max_area=None, mask=None, invert=False):
         self.threshold = threshold
         self.filter_by_area = filter_by_area 
         self.min_area = min_area 
         self.max_area = max_area 
+        self.invert = invert
         self.mask = mask
 
     def find(self,image):
-        if self.threshold == 'otsu':
-            rval, thresh_image = cv2.threshold(image, 0,255,cv2.THRESH_BINARY+cv2.THRESH_OTSU)
+
+        if self.invert:
+            threshold_type = cv2.THRESH_BINARY_INV
         else:
-            rval, thresh_image = cv2.threshold(image, self.threshold,255,cv2.THRESH_BINARY)
+            threshold_type = cv2.THRESH_BINARY
+
+        if self.threshold == 'otsu':
+            threshold_type += cv2.THRESH_OTSU
+
+        rval, thresh_image = cv2.threshold(image, self.threshold, 255, threshold_type)
         if self.mask is not None:
             thresh_image = np.bitwise_and(thresh_image, self.mask)
+
         contour_list, _ = cv2.findContours(thresh_image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
 
         blob_list = []
@@ -61,6 +69,7 @@ class BlobFinder(object):
                     'centroid_y'   : centroid_y,
                     'bounding_box' : bounding_box,
                     'area'         : area,
+                    'contour'      : contour,
                     } 
 
             # If blob is OK add to list of blobs

@@ -53,3 +53,8 @@ def get_angle_and_body_vector(moments):
     angle = np.arctan2(max_eig_vec[1], max_eig_vec[0])
     return angle, max_eig_vec
 
+
+def get_max_area_blob(blob_list):
+    blob_area_array = np.array([blob['area'] for blob in blob_list])
+    ind = blob_area_array.argmax()
+    return blob_list[ind]
