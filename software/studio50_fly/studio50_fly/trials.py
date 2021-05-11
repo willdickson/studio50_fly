@@ -224,7 +224,9 @@ class Trials:
             m0 =  0 if x0 > -1 else -x0
             n0 =  0 if y0 > -1 else -y0
             m1 = log_image_w if x1 < image_w else -(x1 - image_w + 1)
+            
             n1 = log_image_h if y1 < image_h else -(y1 - image_h + 1)
+
             log_image = np.zeros(log_image_shape, dtype=np.uint8)
             log_image[n0:n1,m0:m1] = image[y0:y1, x0:x1]
         else: 
