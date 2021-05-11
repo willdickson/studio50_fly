@@ -13,8 +13,9 @@ class AnimationExample:
         self.extract_data()
 
         self.ind = 0
-        self.update_interval = 1.0 # ms
+        self.update_interval = 1 # ms
         self.line_len = 20
+        self.step = 1
 
         self.fig, self.ax = plt.subplots()
         plt.xlabel('x (pix)')
@@ -65,7 +66,7 @@ class AnimationExample:
 
             trial_num = self.trial_num[self.ind]
             plt.title(f'{self.schedule[trial_num]}, ind: {self.ind}')
-            self.ind += 1
+            self.ind += self.step 
             
         return (self.fly_line, self.body_line)
 
