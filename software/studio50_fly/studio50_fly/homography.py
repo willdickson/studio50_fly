@@ -59,7 +59,7 @@ class Homography:
             _projector_pts = np.reshape(_projector_pts, (1,2))
         projector_pts_3d = np.ones((_projector_pts.shape[0],3))
         projector_pts_3d[:,:2] = _projector_pts
-        camera_pts_3d = np.dot(projector_pts_3d, self.matrix.inv())
+        camera_pts_3d = np.dot(projector_pts_3d, np.linalg.inv(self.matrix))
         denom = np.zeros((camera_pts.shape[0],2))
         denom[:,0] = camera_pts_3d[:,2]
         denom[:,1] = camera_pts_3d[:,2]
