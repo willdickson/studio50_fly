@@ -82,17 +82,17 @@ def create_sawtooth_test_array(filename, param_list, margin=0.5, display=False):
 
 # -----------------------------------------------------------------------------
 
-if 0:
+if 1:
     param = {
-            'arena_radius'    : 0.5,
-            'sawtooth_depth'  : mm_to_inch(1.0),
-            'sawtooth_width'  : mm_to_inch(0.5),
+            'arena_radius'    : 3.0,
+            'sawtooth_depth'  : mm_to_inch(3.0),
+            'sawtooth_width'  : mm_to_inch(1.5),
             }
     
     
     create_sawtooth_arena('sawtooth.dxf', param, display=True)
 
-if 1:
+if 0:
     param_list = [ 
             { 
                 'arena_radius'    : 0.5,
