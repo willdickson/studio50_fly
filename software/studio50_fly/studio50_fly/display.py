@@ -17,6 +17,7 @@ class DisplayMode(enum.IntEnum):
     ROTATING_RAYS = 4
     FILLED_CIRCLE = 5
     FILLED_CIRCLE_ARRAY = 6
+    SOLID_BLINKING = 7
 
 
 class DisplayController:
@@ -48,6 +49,7 @@ class DisplayController:
                 DisplayMode.ROTATING_RAYS       : self.rotating_rays_image, 
                 DisplayMode.FILLED_CIRCLE       : self.filled_circle,
                 DisplayMode.FILLED_CIRCLE_ARRAY : self.filled_circle_array,
+                DisplayMode.SOLID_BLINKING      : self.solid_blinking,
                 }
 
     def load_images(self):
@@ -106,6 +108,14 @@ class DisplayController:
             image = np.zeros(image_shape, dtype=np.uint8)
         for pos in pos_list:
             image = cv2.circle(image,(int(pos[0]), int(pos[1])), size, color, cv2.FILLED, cv2.LINE_8,0)
+        return image
+
+    def solid_blinking(self, t=0.0, period=1.0, duty_cycle=0.5, on_color=(255,255,255), off_color=(0,0,0)):
+        t_mod_period = t % period
+        if t_mod_period < duty_cycle*period:
+            image = self.solid_image(color=on_color)
+        else:
+            image = self.solid_image(color=off_color)
         return image
 
     def update_image(self,state,show=True):

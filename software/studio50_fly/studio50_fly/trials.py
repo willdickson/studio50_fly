@@ -193,6 +193,14 @@ class Trials:
                     'num_rays' :   trial_param['num_rays'], 
                     'color'    :   trial_param['color'],
                     }
+        elif display_mode == DisplayMode.SOLID_BLINKING:
+            kwargs = {
+                    't'          : t,
+                    'period'     : trial_param['period'],
+                    'duty_cycle' : trial_param['duty_cycle'],
+                    'on_color'   : trial_param['on_color'],
+                    'off_color'  : trial_param['off_color'],
+                    }
         else:
             raise ValueError(f"unknown display mode {trial_param['display_mode']}")
         self.display.update_image({'mode': display_mode, 'kwargs': kwargs})
