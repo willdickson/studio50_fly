@@ -178,6 +178,8 @@ class Trials:
         display_mode = DisplayMode[trial_param['display_mode'].upper()] 
         if display_mode == DisplayMode.BLACK:
             kwargs = {}
+        elif display_mode == DisplayMode.SOLID:
+            kwargs = {'color': trial_param['color']}
         elif display_mode == DisplayMode.STATIC_IMAGE:
             kwargs = {'name': trial_param['name']} 
         elif display_mode == DisplayMode.ROTATING_RAYS:
