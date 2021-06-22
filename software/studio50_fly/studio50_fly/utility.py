@@ -43,6 +43,21 @@ def create_ray_image(x0, y0, angle, image_shape, num_rays, color=(0,255,0)):
     return ray_image
 
 
+def create_circular_gradient_image(x0, y0, radius, image_shape):
+    nrow, ncol, nchan = image_shape
+    x_coord = np.arange(ncol, dtype=np.float) - x0
+    y_coord = np.arange(nrow, dtype=np.float) - y0
+    x_coord, y_coord = np.meshgrid(x_coord, y_coord)
+    coord_dist = np.sqrt(x_coord**2 + y_coord**2)
+    mask = coord_dist < radius
+    gradient = np.zeros(coord_dist.shape, dtype=np.float)
+    gradient[mask] = -(255/radius)*coord_dist[mask] + 255
+    image = np.zeros((nrow, ncol, nchan), dtype=np.uint8)
+    for k in range(nchan):
+        image[:,:,k] = gradient
+    return image
+
+
 def get_angle_and_body_vector(moments): 
     """
     Computre the angle and body vector given the image/blob moments

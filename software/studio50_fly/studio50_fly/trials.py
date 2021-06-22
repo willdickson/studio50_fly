@@ -186,8 +186,10 @@ class Trials:
             if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
                 cx_arena = self.calibration.arena['centroid_x']
                 cy_arena = self.calibration.arena['centroid_y']
-                pos = (cx_arena, cy_arena)
-            pos_proj = self.calibration.homography.camera_to_projector(pos)
+                pos_tmp = (cx_arena, cy_arena)
+            else:
+                pos_tmp = pos
+            pos_proj = self.calibration.homography.camera_to_projector(pos_tmp)
             kwargs = {
                     't'        :   t,
                     'pos'      :   tuple(pos_proj),
@@ -203,6 +205,18 @@ class Trials:
                     'on_color'   : trial_param['on_color'],
                     'off_color'  : trial_param['off_color'],
                     }
+        elif display_mode == DisplayMode.GRAYSCALE_GRADIENT:
+            if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
+                cx_arena = self.calibration.arena['centroid_x']
+                cy_arena = self.calibration.arena['centroid_y']
+                pos_tmp = (cx_arena, cy_arena)
+            else:
+                pos_tmp = pos
+            pos_proj = tuple(self.calibration.homography.camera_to_projector(pos_tmp))
+            _, _, w, h = self.calibration.arena['bounding_box']
+            w_proj, h_proj = tuple(self.calibration.homography.camera_to_projector((w,h)))
+            radius = 0.5*max([w_proj, h_proj])
+            kwargs = {'pos': tuple(pos_proj), 'radius' : radius}
         else:
             raise ValueError(f"unknown display mode {trial_param['display_mode']}")
         self.display.update_image({'mode': display_mode, 'kwargs': kwargs})

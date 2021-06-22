@@ -4,8 +4,9 @@ import time
 import enum
 import numpy as np
 from .utility import rotate_image
-from .utility import create_ray_image
 from .utility import get_monitor_dict
+from .utility import create_ray_image
+from .utility import create_circular_gradient_image
 
 
 class DisplayMode(enum.IntEnum):
@@ -18,6 +19,7 @@ class DisplayMode(enum.IntEnum):
     FILLED_CIRCLE = 5
     FILLED_CIRCLE_ARRAY = 6
     SOLID_BLINKING = 7
+    GRAYSCALE_GRADIENT = 8
 
 
 class DisplayController:
@@ -50,6 +52,7 @@ class DisplayController:
                 DisplayMode.FILLED_CIRCLE       : self.filled_circle,
                 DisplayMode.FILLED_CIRCLE_ARRAY : self.filled_circle_array,
                 DisplayMode.SOLID_BLINKING      : self.solid_blinking,
+                DisplayMode.GRAYSCALE_GRADIENT  : self.grayscale_gradient,
                 }
 
     def load_images(self):
@@ -116,6 +119,11 @@ class DisplayController:
             image = self.solid_image(color=on_color)
         else:
             image = self.solid_image(color=off_color)
+        return image
+
+    def grayscale_gradient(self, pos, radius):
+        image_shape = (self.monitor.height, self.monitor.width, 3)
+        image = create_circular_gradient_image(pos[0], pos[1], radius, image_shape)
         return image
 
     def update_image(self,state,show=True):
