@@ -99,18 +99,18 @@ class DisplayController:
         image = create_ray_image(x_scaled, y_scaled, angle, image_shape, num_rays, color=color)
         return image
 
-    def filled_circle(self, pos=(0,0), size=1, color=(255,255,255)):
+    def filled_circle(self, pos=(0,0), radius=1, color=(255,255,255)):
         image_shape = self.monitor.height, self.monitor.width, 3
         image = np.zeros(image_shape, dtype=np.uint8)
-        image = cv2.circle(image, pos, size, color, cv2.FILLED, cv2.LINE_8,0)
+        image = cv2.circle(image, (int(pos[0]), int(pos[1])), radius, color, cv2.FILLED, cv2.LINE_8,0)
         return image
 
-    def filled_circle_array(self, pos_list=[], size=1, color=(255,255,255), image=None):
+    def filled_circle_array(self, pos_list=[], radius=1, color=(255,255,255), image=None):
         if image is None:
             image_shape = self.monitor.height, self.monitor.width, 3
             image = np.zeros(image_shape, dtype=np.uint8)
         for pos in pos_list:
-            image = cv2.circle(image,(int(pos[0]), int(pos[1])), size, color, cv2.FILLED, cv2.LINE_8,0)
+            image = cv2.circle(image,(int(pos[0]), int(pos[1])), radius, color, cv2.FILLED, cv2.LINE_8,0)
         return image
 
     def solid_blinking(self, t=0.0, period=1.0, duty_cycle=0.5, on_color=(255,255,255), off_color=(0,0,0)):

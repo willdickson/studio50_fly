@@ -197,6 +197,25 @@ class Trials:
                     'num_rays' :   trial_param['num_rays'], 
                     'color'    :   trial_param['color'],
                     }
+        elif display_mode == DisplayMode.FILLED_CIRCLE:
+            if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
+                cx_arena = self.calibration.arena['centroid_x']
+                cy_arena = self.calibration.arena['centroid_y']
+                pos_tmp = (cx_arena, cy_arena)
+            else:
+                pos_tmp = pos
+            pos_proj = self.calibration.homography.camera_to_projector(pos_tmp)
+
+            # Get circle radius. If >= 1 then it size in pixels. If < 1 then it is 
+            # fraction of arena radius.
+            radius = trial_param['radius']
+            if radius <= 1: 
+                radius = radius*self.get_arena_radius()
+            kwargs = {
+                    'pos'    : tuple(pos_proj),
+                    'radius' : int(radius),
+                    'color'  : trial_param['color'],
+                    }
         elif display_mode == DisplayMode.SOLID_BLINKING:
             kwargs = {
                     't'          : t,
@@ -213,9 +232,9 @@ class Trials:
             else:
                 pos_tmp = pos
             pos_proj = tuple(self.calibration.homography.camera_to_projector(pos_tmp))
-            _, _, w, h = self.calibration.arena['bounding_box']
-            w_proj, h_proj = tuple(self.calibration.homography.camera_to_projector((w,h)))
-            radius = 0.5*max([w_proj, h_proj])
+            radius = trial_param['radius']
+            if radius <= 1: 
+                radius = radius*self.get_arena_radius()
             kwargs = {'pos': tuple(pos_proj), 'radius' : radius}
         else:
             raise ValueError(f"unknown display mode {trial_param['display_mode']}")
@@ -318,6 +337,15 @@ class Trials:
         kernel = np.ones((kernel_size, kernel_size))
         arena_mask = cv2.erode(arena_mask,kernel,iterations=1)
         return arena_mask
+
+    def get_arena_radius(self): 
+        bb_x,bb_y, bb_w,bb_h = self.calibration.arena['bounding_box']
+        p0 = (bb_x, bb_y)
+        p1 = (bb_x + bb_w, bb_y + bb_h)
+        p0_proj = tuple(self.calibration.homography.camera_to_projector(p0))
+        p1_proj = tuple(self.calibration.homography.camera_to_projector(p1))
+        radius = 0.5*max([abs(p1_proj[0] - p0_proj[0]), abs(p1_proj[1] - p0_proj[1])])
+        return radius
 
 
 
