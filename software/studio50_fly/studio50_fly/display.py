@@ -64,66 +64,88 @@ class DisplayController:
         else:
             self.image_dict = {}
 
-    def black_image(self):
+    def black_image(self,inhibit=False):
         color = (0,0,0)
         return self.solid_image(color=color)
 
-    def solid_image(self,color=(255,255,255)):
+    def solid_image(self,color=(255,255,255), inhibit=False):
         image = np.zeros((self.monitor.height, self.monitor.width, 3) ,dtype=np.uint8)
-        image[:,:,:] = color
+        if not inhibit:
+            image[:,:,:] = color
         return image
 
-    def static_image(self,name=None):
-        if name is None:
-            image = solid_image(color=(255,0,0))
+    def static_image(self,name=None, inhibit=False):
+        if inhibit:
+            image = self.solid_image(color=(0,0,0))
         else:
-            image = self.image_dict[name]
+            if name is None:
+                image = self.solid_image(color=(255,0,0))
+            else:
+                image = self.image_dict[name]
         return image
 
-    def rotating_image(self,t=0.0, rate=0.0, center=None, name=None):
-        angle = t*rate
-        if name is None:
-            image = solid_image(color=(255,0,0))
+    def rotating_image(self,t=0.0, rate=0.0, center=None, name=None, inhibit=False):
+        if inhibit:
+            image_rotated = self.solid_image(color=(0,0,0))
         else:
-            image = self.image_dict[name]
-        image_rotated = rotate_image(image, angle, center=center) 
+            angle = t*rate
+            if name is None:
+                image = self.solid_image(color=(255,0,0))
+            else:
+                image = self.image_dict[name]
+            image_rotated = rotate_image(image, angle, center=center) 
         return image_rotated
 
-    def rotating_rays_image(self, t=0.0, pos=(0,0), rate=0.0, num_rays=3, color=(255,255,255)):
-        scale = int(self.param['ray_image_scale'])
-        x, y = pos
-        x_scaled = x//scale
-        y_scaled = y//scale
-        angle = np.deg2rad(t*rate)
-        image_shape = (self.monitor.height//scale, self.monitor.width//scale, 3)
-        image = create_ray_image(x_scaled, y_scaled, angle, image_shape, num_rays, color=color)
+    def rotating_rays_image(self, t=0.0, pos=(0,0), rate=0.0, num_rays=3, color=(255,255,255), inhibit=False):
+        if inhibit:
+            image = self.solid_image(color=(0,0,0))
+        else:
+            scale = int(self.param['ray_image_scale'])
+            x, y = pos
+            x_scaled = x//scale
+            y_scaled = y//scale
+            angle = np.deg2rad(t*rate)
+            image_shape = (self.monitor.height//scale, self.monitor.width//scale, 3)
+            image = create_ray_image(x_scaled, y_scaled, angle, image_shape, num_rays, color=color)
         return image
 
-    def filled_circle(self, pos=(0,0), radius=1, color=(255,255,255)):
-        image_shape = self.monitor.height, self.monitor.width, 3
-        image = np.zeros(image_shape, dtype=np.uint8)
-        image = cv2.circle(image, (int(pos[0]), int(pos[1])), radius, color, cv2.FILLED, cv2.LINE_8,0)
-        return image
-
-    def filled_circle_array(self, pos_list=[], radius=1, color=(255,255,255), image=None):
-        if image is None:
+    def filled_circle(self, pos=(0,0), radius=1, color=(255,255,255), inhibit=False):
+        if inhibit:
+            image = self.solid_image(color=(0,0,0))
+        else:
             image_shape = self.monitor.height, self.monitor.width, 3
             image = np.zeros(image_shape, dtype=np.uint8)
-        for pos in pos_list:
-            image = cv2.circle(image,(int(pos[0]), int(pos[1])), radius, color, cv2.FILLED, cv2.LINE_8,0)
+            image = cv2.circle(image, (int(pos[0]), int(pos[1])), radius, color, cv2.FILLED, cv2.LINE_8,0)
         return image
 
-    def solid_blinking(self, t=0.0, period=1.0, duty_cycle=0.5, on_color=(255,255,255), off_color=(0,0,0)):
-        t_mod_period = t % period
-        if t_mod_period < duty_cycle*period:
-            image = self.solid_image(color=on_color)
+    def filled_circle_array(self, pos_list=[], radius=1, color=(255,255,255), image=None, inhibit=False):
+        if inhibit:
+            image = self.solid_image(color=(0,0,0))
         else:
-            image = self.solid_image(color=off_color)
+            if image is None:
+                image_shape = self.monitor.height, self.monitor.width, 3
+                image = np.zeros(image_shape, dtype=np.uint8)
+            for pos in pos_list:
+                image = cv2.circle(image,(int(pos[0]), int(pos[1])), radius, color, cv2.FILLED, cv2.LINE_8,0)
         return image
 
-    def grayscale_gradient(self, pos, radius):
-        image_shape = (self.monitor.height, self.monitor.width, 3)
-        image = create_circular_gradient_image(pos[0], pos[1], radius, image_shape)
+    def solid_blinking(self, t=0.0, period=1.0, duty_cycle=0.5, on_color=(255,255,255), off_color=(0,0,0), inhibit=False):
+        if inhibit:
+            image = self.solid_image(color=(0,0,0))
+        else:
+            t_mod_period = t % period
+            if t_mod_period < duty_cycle*period:
+                image = self.solid_image(color=on_color)
+            else:
+                image = self.solid_image(color=off_color)
+        return image
+
+    def grayscale_gradient(self, pos, radius, inhibit=False):
+        if inhibit:
+            image = self.solid_image(color=(0,0,0))
+        else:
+            image_shape = (self.monitor.height, self.monitor.width, 3)
+            image = create_circular_gradient_image(pos[0], pos[1], radius, image_shape)
         return image
 
     def update_image(self,state,show=True):

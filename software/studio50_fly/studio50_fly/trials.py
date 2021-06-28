@@ -134,7 +134,9 @@ class Trials:
         body_angle = 0.0
         body_vector = np.array([0.0, 0.0])
 
-        while t_now - t_trial < trial_param['duration']:
+        exit_ok_flag = False
+
+        while (t_now - t_trial < trial_param['duration']) or not exit_ok_flag:
 
             t_now = time.time()
             t_elapsed_trial = t_now - t_trial
@@ -160,7 +162,7 @@ class Trials:
 
                 cv2.imshow(self.window_name, image)
                 log_image = self.get_log_image(pos, gray_image)
-                display_mode = self.update_display(t_elapsed_trial, pos, trial_param)
+                display_mode, exit_ok_flag = self.update_display(t_elapsed_trial, pos, trial_param)
                 data = {
                         'found'        : found,
                         't_total'      : t_elapsed_total,
@@ -175,7 +177,12 @@ class Trials:
                 self.logger.add(data)
 
     def update_display(self, t, pos, trial_param): 
+
         display_mode = DisplayMode[trial_param['display_mode'].upper()] 
+        cx_arena = self.calibration.arena['centroid_x']
+        cy_arena = self.calibration.arena['centroid_y']
+        fly_radial_pos = np.sqrt((pos[0] - cx_arena)**2 + (pos[1] - cy_arena)**2)
+
         if display_mode == DisplayMode.BLACK:
             kwargs = {}
         elif display_mode == DisplayMode.SOLID:
@@ -184,8 +191,6 @@ class Trials:
             kwargs = {'name': trial_param['name']} 
         elif display_mode == DisplayMode.ROTATING_RAYS:
             if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
-                cx_arena = self.calibration.arena['centroid_x']
-                cy_arena = self.calibration.arena['centroid_y']
                 pos_tmp = (cx_arena, cy_arena)
             else:
                 pos_tmp = pos
@@ -199,8 +204,6 @@ class Trials:
                     }
         elif display_mode == DisplayMode.FILLED_CIRCLE:
             if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
-                cx_arena = self.calibration.arena['centroid_x']
-                cy_arena = self.calibration.arena['centroid_y']
                 pos_tmp = (cx_arena, cy_arena)
             else:
                 pos_tmp = pos
@@ -226,8 +229,6 @@ class Trials:
                     }
         elif display_mode == DisplayMode.GRAYSCALE_GRADIENT:
             if (trial_param['center'] == 'arena') or (pos == self.POS_NOT_FOUND): 
-                cx_arena = self.calibration.arena['centroid_x']
-                cy_arena = self.calibration.arena['centroid_y']
                 pos_tmp = (cx_arena, cy_arena)
             else:
                 pos_tmp = pos
@@ -238,6 +239,31 @@ class Trials:
             kwargs = {'pos': tuple(pos_proj), 'radius' : radius}
         else:
             raise ValueError(f"unknown display mode {trial_param['display_mode']}")
+
+
+        # Check for inhibition condition
+        try:
+            inhibit_cond = trial_param['inhibit_cond']
+        except KeyError:
+            inhibit_cond = {}
+
+        inhibit_flag = False
+        if inhibit_cond:
+            # We have inhibition cond.
+            if 'inside_radius' in inhibit_cond:
+                radius = inhibit_cond['inside_radius']
+                if radius <= 1:
+                    radius = radius*self.get_arena_radius()
+                inhibit_flag = True if fly_radial_pos <= radius else False
+            if 'outside_radius' in inhibit_cond:
+                radius = inhibit_cond['outside_radius']
+                if radius <= 1:
+                    radius = radius*self.get_arena_radius()
+                inhibit_flag = True if fly_radial_pos >= radius else False
+            kwargs['inhibit'] = inhibit_flag
+
+
+        # Update the projector display
         self.display.update_image({'mode': display_mode, 'kwargs': kwargs})
         key = cv2.waitKey(1) & 0xff
         if key == ord('q'):
@@ -245,7 +271,29 @@ class Trials:
             print(' run aborted!')
             print()
             exit(0)
-        return display_mode
+
+        # Check for exit condition 
+        try:
+            exit_cond = trial_param['exit_cond']
+        except KeyError:
+            exit_cond = {}
+
+        exit_ok_flag = True
+        if exit_cond:
+            # We have an exit condition, check it and set the exit_ok_flag accordinly
+            if 'inside_radius' in exit_cond:
+                radius = exit_cond['inside_radius']
+                if radius <= 1:
+                    radius = radius*self.get_arena_radius()
+                exit_ok_flag = True if fly_radial_pos <= radius else False
+
+            if 'outside_radius' in exit_cond:
+                radius = exit_cond['outside_radius']
+                if radius <= 1:
+                    radius = radius*self.get_arena_radius()
+                exit_ok_flag = True if fly_radial_pos >= radius else False
+
+        return display_mode, exit_ok_flag
 
     def get_log_image(self, pos, image):
         log_image_type =  self.config['fly']['log']['image']['type']
